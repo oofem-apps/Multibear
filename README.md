@@ -34,7 +34,7 @@ $ python3 multibear.py
 ```
 
 ## Documentation	
-MULTIBEAR Program documentation is available [here](multibear_manual.pdf).
+MULTIBEAR Program documentation is available [here](multibear_documentation.pdf).
 3
 
 ## Authors
