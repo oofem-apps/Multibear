@@ -5,10 +5,9 @@ MULTIBEAR is a specialized software tool designed for the modeling, simulation, 
 
 The software features an intuitive Graphical User Interface (GUI) that streamlines the design and verification of transverse reinforcement. While the interface enables the rapid generation of interaction diagrams—without requiring the user to have extensive expertise in non-linear finite element analysis—the underlying computational engine ensures high-fidelity results. MULTIBEAR bridges analytical design with advanced structural research by automating the verification of interaction diagrams through integrated non-linear simulations powered by the open-source OOFEM finite element package. This dual-layer approach provides engineers with both the efficiency of rapid design and the structural reliability of a validated numerical framework.
 
-<p align="center" style="background-color: white; padding: 10px; border-radius: 5px; display: inline-block;">
-  <img src="multibear_logo_mid.png" alt="Multibear logo" width="400"/>
+<p align="center">
+  <img src="multibear_bw.png" alt="Multibear logo" width="400"/>
 </p>
-
 
 ## Licensing
 MULTIBEAR is free for educational and research purposes. It is distributed under the terms of the GNU Lesser General Public License (LGPL) version 2.1 or later. For commercial licensing inquiries, please contact the developer.
