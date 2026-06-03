@@ -2762,16 +2762,22 @@ class MainWindow(QMainWindow):
 
     def generate_inputs(self):
 
-        # creating project path
+        # create project path
         project = Path(self.globvar.project_name)
 
-        # delete old folder
-        if project.exists():
-            message = f"{project} folder already exists. Deleting... "
-            self.warning_dialog_ok(message)
-            #warnings.warn(message)
+        # check if folder already exists
+        if project.exists() and self.globvar.flag_problem_changed :
+            # ask if user wants to delete old files
+            question = QMessageBox.question(self, "Directory Already Exists",
+                                            f"Folder '{project}' already exists.\nOverwrite?")
+            if question != QMessageBox.Yes:
+                logger.info("Input(s) generation cancelled")
+                return
+
+            # delete old files
             shutil.rmtree(project)
-        # creating new folder
+
+        # create new project folder
         project.mkdir(parents=True, exist_ok=True)
 
         self.Bp_y_values = []
@@ -2779,22 +2785,27 @@ class MainWindow(QMainWindow):
         for task in self.globvar.tasks:
 
             if task.status == Task_status.SELECTED:
-                Load_plate_length = task.eccentricity_normalized[1]
-                logger.info(f"Generating oofem input, normalized loading plate depth: {Load_plate_length:.3f}")
+                load_plate_length = task.eccentricity_normalized[1]
 
-                #modify actual eccentricity
+                # modify actual eccentricity
                 task.eccentricity_actual = [ task.eccentricity_normalized[0] * self.globvar.Bx, task.eccentricity_normalized[1] * self.globvar.By ]
-                self.Bp_y_values.append(Load_plate_length)
-                self.globvar.load_plate_length = Load_plate_length
-                self.globvar.Bp_y = Load_plate_length * self.globvar.By
+                self.Bp_y_values.append(load_plate_length)
+                self.globvar.load_plate_length = load_plate_length
+                self.globvar.Bp_y = load_plate_length * self.globvar.By
 
-                #making folders for oofem
-                folder_name = f"{Load_plate_length:.3f}"
+                # create path
+                folder_name = f"{load_plate_length:.3f}"
                 task_folder = project / folder_name
-                task_folder.mkdir(parents=True, exist_ok=True)
-
                 self.globvar.file_path = task_folder
                 task.file_path = task_folder
+
+                if task_folder.exists():
+                    logger.info(f"Input for configuration {folder_name} already exist. Skip")
+                    continue
+
+                task_folder.mkdir(parents=True, exist_ok=True)
+
+                logger.info(f"Generating oofem input, normalized loading plate depth: {load_plate_length:.3f}")
 
                 self.generate_mesh()
 
