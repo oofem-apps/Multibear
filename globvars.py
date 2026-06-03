@@ -52,14 +52,6 @@ class globvars:
         self.load_plate_length = 0.5
         self.Bp_y = self.load_plate_length * self.By
 
-        # DUMMY NODES
-
-        #self.master_node_force = 1000000   #remove
-        #self.master_node_shortening = self.master_node_force+1 #remove
-        #self.master_node_bending_x = self.master_node_force+2  #remove
-        #self.master_node_bending_y = self.master_node_force+3  #remove
-
- 
         # global numbers
         self.ndofman = 0
         self.nelem = 0

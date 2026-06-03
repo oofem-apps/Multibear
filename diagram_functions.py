@@ -114,7 +114,6 @@ def CTU (Bp_y,globvar):
 
     alpha_b = np.maximum( (b_n - b_n_c) / (1 - b_n_c) , 0)
     Beta_bd_reinf = np.minimum(d_n / d_n_c , 1) * (1 - alpha_b) + d_n * alpha_b
-    #fcc = Beta_sigma_L * 6.35 * sigma_L_eff**0.82 * (1 + 0.0095 * (fc - 28)**0.82) #remove staré
     fcc = Beta_sigma_L * 6.35 * sigma_L_eff**0.82 * (fc / 28)**0.2
 
     fb_reinf = ( fcc * (1 + Beta_b_reinf) * Beta_bd_reinf)
