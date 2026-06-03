@@ -43,7 +43,6 @@ from rebars import rebar, hoop, spiral, tie
 from cross_sections import cross_section
 from elements import element
 from materials import concrete_mat, rebar_mat, tendon_mat, window_CDPM2, window_Mises
-# from interaction_diagrams import id_ACI, id_MC2010, id_MSR, id_MSR_simple #remove
 
 
 from concrete_mesh import generate_concrete_mesh
@@ -94,7 +93,6 @@ class Worker(QObject):
         self.task.status = Task_status.PROGRESS
         # TODO: task should have its name
         dr = oofempy.OOFEMTXTDataReader(f"{self.project_name}.in")
-        #dr = oofempy.OOFEMTXTDataReader(f"FEM_multibear.in") #remove
         problem = oofempy.InstanciateProblem(dr, oofempy.problemMode.processor, False, None, False)
         domain = problem.giveDomain(1)
 
@@ -1282,21 +1280,6 @@ class MainWindow(QMainWindow):
         self.topology_canvas.axes.text(0, 1.04, 'y', transform=self.topology_canvas.axes.transAxes,
                                        fontsize=11, fontweight='bold', va='bottom', ha='center', clip_on=False)
 
-        ''' #remove
-        # DRAW NEUTRAL AXIS & CONFINEMENT FEATURES
-        if ( self.globvar.flag_active_neutral_axis ):
-
-            NO_y = self.globvar.By / 2. - self.globvar.c_neutral_axis
-            self.topology_canvas.axes.plot( [-self.globvar.Bx/2., self.globvar.Bx/2.],  [NO_y, NO_y], linestyle='dashdot', color='black', linewidth=1)
-
-            if (self.globvar.debug_flag):
-                for single in self.diagram_MSR.single_confined_areas:
-                    self.topology_canvas.axes.plot( single.CG[0], single.CG[1], color='red', marker='2', markeredgewidth=2, markersize=10)
-
-                for double in self.diagram_MSR.double_confined_areas:
-                    self.topology_canvas.axes.plot( double.CG[0], double.CG[1], color='magenta', marker='1', markeredgewidth=2, markersize=10)
-
-        '''
         self.topology_canvas.draw()
         self.update_diagram_plot()
 
@@ -1381,12 +1364,8 @@ class MainWindow(QMainWindow):
                 for task in self.globvar.tasks:
                     if task.status == Task_status.COMPLETED:
 
-                        #aux_M = [abs(m) for m in task.M]
-                        #aux_N = [abs(n) for n in task.N]
                         aux_M = [0.0] + [abs(m) for m in task.M]
                         aux_N = [0.0] + [abs(n) for n in task.N]
-                        #aux_M = [0.0] + task.M #remove
-                        #aux_N = [0.0] + task.N #remove
 
                         self.diagram_canvas.axes.plot(
                             aux_M, aux_N,
@@ -1478,8 +1457,6 @@ class MainWindow(QMainWindow):
                 for task in self.globvar.tasks:
                     if task.status == Task_status.COMPLETED:
 
-                        #aux_d = [0.0] + [abs(m) for m in task.d]   #remove
-                        #aux_fb = [0.0] + [abs(n) for n in task.fb] #remove
                         aux_d = [abs(m) for m in task.d]
                         aux_fb = [abs(n) for n in task.fb]
 
@@ -1794,7 +1771,6 @@ class MainWindow(QMainWindow):
             self.update_large_spirals()
             self.update_large_ties()
             self.update_vertical_rebars()
-            #remove self.diagram_MSR.update_MSR_intersections(self.globvar)
 
         # widget sync
         self.widget_cover.blockSignals(True)
@@ -1829,7 +1805,6 @@ class MainWindow(QMainWindow):
 
 
             self.update_vertical_rebars()
-            #remove self.diagram_MSR.update_MSR_intersections(self.globvar)
 
         else:
             self.widget_n_v_bars.setValue(self.globvar.n_v_bars)
@@ -1902,7 +1877,6 @@ class MainWindow(QMainWindow):
 
             self.update_small_spirals()
             self.update_vertical_rebars()
-            #remove self.diagram_MSR.update_MSR_intersections(self.globvar)
 
         else:
             self.widget_dS.setValue( self.globvar.dS )
@@ -1941,7 +1915,6 @@ class MainWindow(QMainWindow):
 
             self.update_small_spirals()
             self.update_vertical_rebars()
-            #self.diagram_MSR.update_MSR_intersections(self.globvar)    #remove
 
         else:
             self.widget_DS.setCurrentIndex(list(self.globvar.rebars_CS.keys()).index(self.globvar.DS))
@@ -1981,7 +1954,6 @@ class MainWindow(QMainWindow):
             self.update_large_spirals()
             self.update_large_ties()
             self.update_vertical_rebars()
-            #   self.diagram_MSR.update_MSR_intersections(self.globvar) #remove
 
 
         else:
@@ -2081,11 +2053,8 @@ class MainWindow(QMainWindow):
 
             area = self.globvar.rebars_CS[self.globvar.DT].area
 
-
-            #self.update_large_spirals()
             self.update_large_ties()
             self.update_vertical_rebars()
-            #self.diagram_MSR.update_MSR_intersections(self.globvar)    #remove
 
         else:
             self.widget_DT.blockSignals(True)
@@ -2123,7 +2092,6 @@ class MainWindow(QMainWindow):
                     # cross-section needs to be updated!
 
             self.update_vertical_rebars()
-            # remove self.diagram_MSR.update_MSR_intersections(self.globvar)
 
             # update cross-section
             for reb in self.globvar.rebars:
@@ -2794,16 +2762,22 @@ class MainWindow(QMainWindow):
 
     def generate_inputs(self):
 
-        # creating project path
+        # create project path
         project = Path(self.globvar.project_name)
 
-        # delete old folder
-        if project.exists():
-            message = f"{project} folder already exists. Deleting... "
-            self.warning_dialog_ok(message)
-            #warnings.warn(message)
+        # check if folder already exists
+        if project.exists() and self.globvar.flag_problem_changed :
+            # ask if user wants to delete old files
+            question = QMessageBox.question(self, "Directory Already Exists",
+                                            f"Folder '{project}' already exists.\nOverwrite?")
+            if question != QMessageBox.Yes:
+                logger.info("Input(s) generation cancelled")
+                return
+
+            # delete old files
             shutil.rmtree(project)
-        # creating new folder
+
+        # create new project folder
         project.mkdir(parents=True, exist_ok=True)
 
         self.Bp_y_values = []
@@ -2811,22 +2785,27 @@ class MainWindow(QMainWindow):
         for task in self.globvar.tasks:
 
             if task.status == Task_status.SELECTED:
-                Load_plate_length = task.eccentricity_normalized[1]
-                logger.info(f"Generating oofem input, normalized loading plate depth: {Load_plate_length:.3f}")
+                load_plate_length = task.eccentricity_normalized[1]
 
-                #modify actual eccentricity
+                # modify actual eccentricity
                 task.eccentricity_actual = [ task.eccentricity_normalized[0] * self.globvar.Bx, task.eccentricity_normalized[1] * self.globvar.By ]
-                self.Bp_y_values.append(Load_plate_length)
-                self.globvar.load_plate_length = Load_plate_length
-                self.globvar.Bp_y = Load_plate_length * self.globvar.By
+                self.Bp_y_values.append(load_plate_length)
+                self.globvar.load_plate_length = load_plate_length
+                self.globvar.Bp_y = load_plate_length * self.globvar.By
 
-                #making folders for oofem
-                folder_name = f"{Load_plate_length:.3f}"
+                # create path
+                folder_name = f"{load_plate_length:.3f}"
                 task_folder = project / folder_name
-                task_folder.mkdir(parents=True, exist_ok=True)
-
                 self.globvar.file_path = task_folder
                 task.file_path = task_folder
+
+                if task_folder.exists():
+                    logger.info(f"Input for configuration {folder_name} already exist. Skip")
+                    continue
+
+                task_folder.mkdir(parents=True, exist_ok=True)
+
+                logger.info(f"Generating oofem input, normalized loading plate depth: {load_plate_length:.3f}")
 
                 self.generate_mesh()
 
@@ -2904,7 +2883,6 @@ class MainWindow(QMainWindow):
 
 
     def select_oofem_folder(self):
-        #folder = "/home/petrjanas/Programy/oofem/build_py39" ##remove after all
         folder = str(QFileDialog.getExistingDirectory(self, "Select OOFEM Directory"))
         self.set_oofem_folder(folder)
 

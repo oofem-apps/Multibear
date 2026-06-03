@@ -184,7 +184,6 @@ def generate_concrete_mesh(globvar):
             gmsh.model.setPhysicalName(3, i, f"fused_volume{i}")
 
 
-    #gmsh.model.occ.removeAllDuplicates()
 
     #  Generate 3D mesh
     gmsh.model.mesh.generate(3)
